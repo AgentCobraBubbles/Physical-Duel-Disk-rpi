@@ -7,15 +7,62 @@
 */
 #include <stdio.h>
 #include <stdint.h>
-#include "pn532.h"
-#include "pn532_rpi.h"
-#include "PDD_rpi.h"
 
+
+void Mux_Select(uint8_t channel)
+{
+	if (channel & 1) printf("1");
+	if (channel & 2) printf("1");
+	if (channel & 4) printf("1");
+	if (channel & 8) printf("1");
+	printf("MUX\r\n");
+}
+//******************
+int8_t PN532_Init()
+{
+	uint8_t buff[255];
+	for (uint8_t i = 0; i < PN532_READER_AMOUNT; i++)
+	{
+		Mux_Select(i);
+		PN532_I2C_Init(&pn532);
+		if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK)
+		{
+			printf("Zone: %u\r\n", i);
+			printf("Found PN532 with firmware version: %d.%d\r\n", buff[1], buff[2]);
+		} else {
+			return PN532_STATUS_ERROR;
+		}
+		PN532_SamConfiguration(&pn532);
+	}
+	return 0;
+}
+//***********************************************
+void PN532_Read()
+{
+	
+	uint8_t uid[MIFARE_UID_MAX_LENGTH];
+	uint8_t key_a[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+	uint32_t pn532_error = PN532_ERROR_NONE;
+	int32_t uid_len = 0;
+
+}
+//***********************************************
+void Card_Updates(uint8_t zone_num, bool empty_zone)
+{
+	printf("Card Updates/r/n");
+}
+//***********************************************
+uint8_t QTR_Read(bool mode)
+{
+	printf("QTR\r\n");
+	return 1;
+}
+//**********************************************
 void Card_Detection()
 {
 	uint32_t tag_id[2];
 	uint8_t QTR_State;
-	
+	uint8_t PN532_Timeout;
 
 	for (uint8_t i = 0; i < PN532_READER_AMOUNT; i++)
 	{
@@ -25,7 +72,7 @@ void Card_Detection()
 			continue;
 		}
 
-		for (uin8_t j = 0; j < 3; j++)
+		for (uint8_t j = 0; j < 3; j++)
 		{														
 			Mux_Select(3 * (i+1) - j);
 			QTR_State |= QTR_Read(QTR_DIGITAL) << j;			//Poll QTR Reflectance Sensors to determine populated zones
@@ -44,11 +91,11 @@ void Card_Detection()
 		if (!QTR_State){Card_Updates(i,0);continue;}				//If zone is empty skip rest of loop
 
 
-		PN532_timeout = PN532_2TAG_TIMEOUT;
-		while (!PN532_timeout)										//Poll PN532 for card data
+		PN532_Timeout = PN532_2TAG_TIMEOUT;
+		while (!PN532_Timeout)										//Poll PN532 for card data
 		{
 			PN532_Read();
-			PN532_timeout--;
+			PN532_Timeout--;
 		}
 		
 		
@@ -62,50 +109,3 @@ void Card_Detection()
 	//Populate Data
 }
 //******************
-void Card_Updates(uint8_t zone_num, bool empty_zone)
-{
-	switch
-}
-//******************
-int8_t PN532_Init()
-{
-	for (uint8_t i = 0; i < PN532_READER_AMOUNT; i++)
-	{
-		Mux_Select(i);
-		PN532_I2C_Init(&pn532);
-		if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK)
-		{
-			printf("Zone: %u\r\n", i);
-			printf("Found PN532 with firmware version: %d.%d\r\n", buff[1], buff[2]);
-		} else {
-			return PN532_STATUS_ERROR;
-		}
-		PN532_SamConfiguration(&pn532);
-	}
-	return 0;
-}
-//***********************************************
-void PN532_Read(CardData *card)
-{
-	uint8_t buff[255];
-	uint8_t uid[MIFARE_UID_MAX_LENGTH];
-	uint8_t key_a[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-	uint32_t pn532_error = PN532_ERROR_NONE;
-	int32_t uid_len = 0;
-
-}
-//***********************************************
-void Mux_Select(uin8_t channel)
-{
-	if (channel & 1) printf("1");
-	if (channel & 2) printf("1");
-	if (channel & 4) printf("1");
-	if (channel & 8) printf("1");
-	printf("MUX\r\n");
-}
-//***********************************************
-uint8_t QTR_Read(bool mode)
-{
-	printf("QTR\r\n");
-	return 1;
-}
