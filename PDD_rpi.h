@@ -10,9 +10,9 @@
 #ifndef PDD_RPI_H
 #define PDD_RPI_H
 
-#include PDD_rpi_functions.c
 
-#define PN532_READER_AMOUNT		3
+
+#define PN532_READER_AMOUNT		1					//Amount of PN532 Readers
 #define PN532_2TAG_TIMEOUT		120
 #define QTR_READER_AMOUNT		3
 #define QTR_ANALOG				1
@@ -20,6 +20,7 @@
 
 
 void Card_Detection();
+void PN532_Read(uint8_t tag_amount);
 void Card_Updates(uint8_t zone_num, bool empty_zone);
 void Mux_Select(uint8_t channel);
 int8_t PN532_Init();
@@ -43,4 +44,8 @@ typedef struct _CardData
 	uint32_t Serial_Num;
 } CardData;
 
+DuelDisk Disk1;
+CardData Card1;
+CardData Card2;
+PN532 pn532;
 #endif	//PDD_RPI_H
